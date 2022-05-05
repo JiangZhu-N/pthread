@@ -45,13 +45,13 @@ void MPMCQueuePush1(MPMCQueue *pool, void *s)
         if (bufferLeft > 0)
         {
 
-            pool = MPMCQueueInit(pool);
+            pool = MPMCQueueInit();
             pool->Data1 = s;
             pool->next = head1;
             head1 = pool;
             bufferLeft--;
             data1++;
-            printf("Push   1    数据1:%d    数据2:%d    总数:%d\n", data1, data2, MIX - bufferLeft);
+            printf("Push   1    [1]:%d    [2]:%d    总数:%d\n", data1, data2, MIX - bufferLeft);
             pthread_cond_signal(&notEmpty1);
         }
         else
@@ -72,13 +72,13 @@ void MPMCQueuePush2(MPMCQueue *pool, void *s)
         if (bufferLeft > 0)
         {
 
-            pool = MPMCQueueInit(pool);
+            pool = MPMCQueueInit();
             pool->Data2 = s;
             pool->next = head1;
             head1 = pool;
             bufferLeft--;
             data2++;
-            printf("Push   2    数据1:%d    数据2:%d    总数:%d\n", data1, data2, MIX - bufferLeft);
+            printf("Push   2    [1]:%d    [2]:%d    总数:%d\n", data1, data2, MIX - bufferLeft);
             pthread_cond_signal(&notEmpty2);
         }
         else
@@ -108,7 +108,7 @@ void *MPMCQueuePop1(MPMCQueue *pool)
         head1 = pool->next;
         bufferLeft++;
         data1--;
-        printf("Pop    1    数据1:%d    数据2:%d    总数:%d\n", data1, data2, MIX - bufferLeft);
+        printf("Pop    1    [1]:%d    [2]:%d    总数:%d\n", data1, data2, MIX - bufferLeft);
         pthread_cond_signal(&notFull);
         pthread_mutex_unlock(&lock);
         MPMCQueueDestory(pool);
@@ -133,7 +133,7 @@ void *MPMCQueuePop2(MPMCQueue *pool)
         head1 = pool->next;
         bufferLeft++;
         data2--;
-        printf("Pop    2    数据1:%d    数据2:%d    总数:%d\n", data1, data2, MIX - bufferLeft);
+        printf("Pop    2    [1]:%d    [2]:%d    总数:%d\n", data1, data2, MIX - bufferLeft);
         pthread_cond_signal(&notFull);
         pthread_mutex_unlock(&lock);
         MPMCQueueDestory(pool);
@@ -154,4 +154,7 @@ int main()
     pthread_join(Push2, NULL);
     pthread_join(Pop1, NULL);
     pthread_join(Pop2, NULL);
+
+    pthread_mutex_destroy(&lock);
 }
+
