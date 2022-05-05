@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -17,6 +16,7 @@ SPSCQueue *head;
 
 pthread_mutex_t lock;
 pthread_cond_t notEmpty;
+pthread_cond_t notFull;
 int bufferLeft = MIX;
 
 SPSCQueue *SPSCQueueInit()
@@ -35,11 +35,11 @@ void SPSCQueuePush(SPSCQueue *pool, void *s)
 {
     while (1)
     {
-
+        pthread_mutex_lock(&lock);
         if (bufferLeft > 0)
         {
-            pthread_mutex_lock(&lock);
-            pool = SPSCQueueInit(pool);
+
+            pool = SPSCQueueInit();
             pool->Data = s;
             pool->next = head;
             head = pool;
@@ -51,6 +51,7 @@ void SPSCQueuePush(SPSCQueue *pool, void *s)
         else
         {
             printf("Push失败:缓冲区已满\n");
+            pthread_cond_wait(&notFull, &lock);
         }
         sleep(rand() % 2);
     }
@@ -60,7 +61,7 @@ void *SPSCQueuePop(SPSCQueue *pool)
 {
     while (1)
     {
-
+        pthread_mutex_lock(&lock);
         while (bufferLeft >= MIX)
         {
             if (bufferLeft >= MIX)
@@ -72,6 +73,7 @@ void *SPSCQueuePop(SPSCQueue *pool)
         pool = head;
         head = pool->next;
         bufferLeft++;
+        pthread_cond_signal(&notFull);
         pthread_mutex_unlock(&lock);
         printf("Pop     总数:%d\n", MIX - bufferLeft);
         SPSCQueueDestory(pool);
@@ -88,4 +90,7 @@ int main()
 
     pthread_join(Push, NULL);
     pthread_join(Pop, NULL);
+
+    pthread_mutex_destroy(&lock);
 }
+
