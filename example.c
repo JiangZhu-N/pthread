@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #define NUMBER 2
+
 typedef struct Task
 {
     void (*function)(void *arg);
